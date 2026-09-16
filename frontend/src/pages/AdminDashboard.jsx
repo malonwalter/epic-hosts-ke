@@ -1,19 +1,64 @@
 import { useEffect, useState } from 'react'
 import './AdminDashboard.css'
 
-const API_URL = 'http://127.0.0.1:5001/api/bookings/'
+const API_URL = 'http://localhost:5001/api/bookings/'
+const AUTH_URL = 'http://localhost:5001/api/admin'
 
 function AdminDashboard() {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const checkAuthentication = async () => {
+    try {
+      const response = await fetch(`${AUTH_URL}/me`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        window.location.href = '/admin/login'
+        return false
+      }
+
+      const data = await response.json()
+
+      if (!data.authenticated) {
+        window.location.href = '/admin/login'
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error(err)
+      setError(
+        'Unable to verify your admin session. Make sure the backend is running.'
+      )
+      setLoading(false)
+      return false
+    }
+  }
+
   const fetchBookings = async () => {
     try {
       setLoading(true)
       setError('')
 
-      const response = await fetch(API_URL)
+      const authenticated = await checkAuthentication()
+
+      if (!authenticated) {
+        return
+      }
+
+      const response = await fetch(API_URL, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (response.status === 401) {
+        window.location.href = '/admin/login'
+        return
+      }
 
       if (!response.ok) {
         throw new Error('Failed to load bookings.')
@@ -44,9 +89,15 @@ function AdminDashboard() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify({ status }),
         }
       )
+
+      if (response.status === 401) {
+        window.location.href = '/admin/login'
+        return
+      }
 
       if (!response.ok) {
         throw new Error('Failed to update booking status.')
@@ -67,6 +118,19 @@ function AdminDashboard() {
     }
   }
 
+  const logout = async () => {
+    try {
+      await fetch(`${AUTH_URL}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (err) {
+      console.error(err)
+    } finally {
+      window.location.href = '/admin/login'
+    }
+  }
+
   const pendingCount = bookings.filter(
     (booking) => booking.status === 'pending'
   ).length
@@ -84,6 +148,7 @@ function AdminDashboard() {
 
       {/* HEADER */}
       <header className="admin-header">
+
         <div>
           <p className="admin-eyebrow">
             EPIC HOSTS KE
@@ -96,12 +161,24 @@ function AdminDashboard() {
           </p>
         </div>
 
-        <button
-          className="refresh-button"
-          onClick={fetchBookings}
-        >
-          ↻ Refresh
-        </button>
+        <div className="admin-header-actions">
+
+          <button
+            className="refresh-button"
+            onClick={fetchBookings}
+          >
+            ↻ Refresh
+          </button>
+
+          <button
+            className="logout-button"
+            onClick={logout}
+          >
+            Logout
+          </button>
+
+        </div>
+
       </header>
 
       {/* STATS */}
@@ -133,6 +210,7 @@ function AdminDashboard() {
       <section className="admin-bookings">
 
         <div className="bookings-heading">
+
           <div>
             <p className="admin-eyebrow">
               BOOKING REQUESTS
@@ -145,6 +223,7 @@ function AdminDashboard() {
             {bookings.length} booking
             {bookings.length !== 1 ? 's' : ''}
           </span>
+
         </div>
 
         {loading && (
@@ -231,8 +310,13 @@ function AdminDashboard() {
                 </div>
 
                 <div className="booking-message">
+
                   <span>Client Message</span>
-                  <p>{booking.message}</p>
+
+                  <p>
+                    {booking.message}
+                  </p>
+
                 </div>
 
                 <div className="booking-actions">
@@ -251,6 +335,7 @@ function AdminDashboard() {
                       )
                     }
                   >
+
                     <option value="pending">
                       Pending
                     </option>
@@ -266,6 +351,7 @@ function AdminDashboard() {
                     <option value="cancelled">
                       Cancelled
                     </option>
+
                   </select>
 
                 </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './AdminLogin.css'
 
-const API_URL = 'http://127.0.0.1:5001/api/admin'
+const API_URL = 'http://localhost:5001/api/admin'
 
 function AdminLogin() {
   const [username, setUsername] = useState('')
