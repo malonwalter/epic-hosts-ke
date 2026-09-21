@@ -1,5 +1,8 @@
 from flask import Flask, jsonify
+from dotenv import load_dotenv
 from flask_cors import CORS
+
+load_dotenv()
 
 from config import Config
 from models import db
@@ -15,8 +18,8 @@ def create_app():
         app,
         supports_credentials=True,
         origins=[
-        "http://localhost:5177",
-        "http://127.0.0.1:5177"
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
     ]
 )
 

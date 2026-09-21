@@ -30,7 +30,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://127.0.0.1:5001/api/bookings/',
+        'http://localhost:5001/api/bookings/',
         {
           method: 'POST',
           headers: {
@@ -64,7 +64,7 @@ function App() {
   return (
     <div className="site">
 
-      {/* NAVIGATION */}
+            {/* NAVIGATION */}
       <header className="navbar">
         <div className="nav-container">
           <a href="#home" className="logo">
@@ -82,6 +82,21 @@ function App() {
           <a href="#booking" className="nav-button">
             Book Us
           </a>
+
+          <button
+            className="mobile-menu-button"
+            type="button"
+            aria-label="Toggle navigation menu"
+            onClick={() => {
+              document
+                .querySelector('.nav-links')
+                .classList.toggle('mobile-open')
+            }}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </header>
 
@@ -551,6 +566,8 @@ function App() {
                       id="phone"
                       name="phone"
                       placeholder="+254 7XX XXX XXX"
+                      pattern="(\+254|0)7[0-9]{8}"
+                      title="Please enter a valid Kenyan phone number, e.g. +254712345678 or 0712345678"
                       required
                     />
                   </div>
@@ -631,6 +648,7 @@ function App() {
                       type="date"
                       id="date"
                       name="date"
+                      min={new Date().toISOString().split('T')[0]}
                       required
                     />
                   </div>
@@ -756,17 +774,17 @@ function App() {
                 </button>
 
                 {submitted && (
-                  <div className="form-success">
-                    Thank you! Your booking request has been
-                    received. Our team will contact you shortly.
-                  </div>
-                )}
+                  <div className="booking-success">
+                    ✓ Your booking request has been received. Our team will
+                    get back to you soon.
+                </div>
+                  )}
 
-                {error && (
-                  <div className="form-error">
-                    {error}
-                  </div>
-                )}
+                  {error && (
+                    <div className="booking-error">
+                      {error}
+                    </div>
+                  )}
 
                 <p className="form-note">
                   We will review your request and get back to you.

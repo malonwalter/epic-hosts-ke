@@ -4,10 +4,39 @@ import './AdminDashboard.css'
 const API_URL = 'http://localhost:5001/api/bookings/'
 const AUTH_URL = 'http://localhost:5001/api/admin'
 
+const formatEventType = (value) => {
+  const labels = {
+    ushering: 'Event Ushering',
+    hosting: 'Event Hosting / MC',
+    'brand-activation': 'Brand Activation',
+    corporate: 'Corporate Event',
+    wedding: 'Wedding / Private Event',
+    promotional: 'Promotional Event',
+    other: 'Other',
+  }
+
+  return labels[value] || value
+}
+
+const formatBudget = (value) => {
+  const labels = {
+    'below-20k': 'Below KSh 20,000',
+    '20k-50k': 'KSh 20,000 - 50,000',
+    '50k-100k': 'KSh 50,000 - 100,000',
+    '100k-250k': 'KSh 100,000 - 250,000',
+    '250k+': 'KSh 250,000+',
+  }
+
+  return labels[value] || value
+}
+
 function AdminDashboard() {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [selectedBooking, setSelectedBooking] = useState(null)
 
   const checkAuthentication = async () => {
     try {
@@ -143,6 +172,23 @@ function AdminDashboard() {
     (booking) => booking.status === 'completed'
   ).length
 
+    const filteredBookings = bookings.filter((booking) => {
+    const search = searchTerm.toLowerCase()
+
+    const matchesSearch =
+      booking.name.toLowerCase().includes(search) ||
+      booking.email.toLowerCase().includes(search) ||
+      booking.phone.toLowerCase().includes(search) ||
+      booking.event_type.toLowerCase().includes(search) ||
+      booking.location.toLowerCase().includes(search)
+
+    const matchesStatus =
+      statusFilter === 'all' ||
+      booking.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
+
   return (
     <div className="admin-dashboard">
 
@@ -226,6 +272,28 @@ function AdminDashboard() {
 
         </div>
 
+        <div className="booking-filters">
+
+          <input
+            type="search"
+            placeholder="Search bookings..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+        </div>
+
         {loading && (
           <div className="admin-message">
             Loading bookings...
@@ -247,7 +315,7 @@ function AdminDashboard() {
         {!loading && !error && bookings.length > 0 && (
           <div className="bookings-list">
 
-            {bookings.map((booking) => (
+             {filteredBookings.map((booking) => (
               <article
                 className="booking-admin-card"
                 key={booking.id}
@@ -263,7 +331,7 @@ function AdminDashboard() {
                     <h3>{booking.name}</h3>
 
                     <p className="booking-event">
-                      {booking.event_type}
+                      {formatEventType(booking.event_type)}
                     </p>
                   </div>
 
@@ -289,7 +357,15 @@ function AdminDashboard() {
 
                   <div>
                     <span>Event Date</span>
-                    <strong>{booking.event_date}</strong>
+                    <strong>
+                    {new Date(
+                      `${booking.event_date}T00:00:00`
+                    ).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </strong>
                   </div>
 
                   <div>
@@ -304,7 +380,7 @@ function AdminDashboard() {
 
                   <div>
                     <span>Budget</span>
-                    <strong>{booking.budget}</strong>
+                    <strong>{formatBudget(booking.budget)}</strong>
                   </div>
 
                 </div>
@@ -318,6 +394,14 @@ function AdminDashboard() {
                   </p>
 
                 </div>
+
+                <button
+                  type="button"
+                  className="view-booking-button"
+                  onClick={() => setSelectedBooking(booking)}
+                >
+                  View Details
+                </button>
 
                 <div className="booking-actions">
 
@@ -364,8 +448,111 @@ function AdminDashboard() {
 
       </section>
 
+
+      {selectedBooking && (
+        <div
+          className="booking-modal-overlay"
+          onClick={() => setSelectedBooking(null)}
+        >
+          <div
+            className="booking-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="booking-modal-header">
+              <div>
+                <span className="booking-id">
+                  Booking #{selectedBooking.id}
+                </span>
+
+                <h2>{selectedBooking.name}</h2>
+
+                <p>
+                  {formatEventType(selectedBooking.event_type)}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="booking-modal-close"
+                onClick={() => setSelectedBooking(null)}
+                aria-label="Close booking details"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="booking-modal-status">
+              <span
+                className={`status-badge ${selectedBooking.status}`}
+              >
+                {selectedBooking.status}
+              </span>
+            </div>
+
+            <div className="booking-modal-grid">
+
+              <div>
+                <span>Email</span>
+                <strong>{selectedBooking.email}</strong>
+              </div>
+
+              <div>
+                <span>Phone</span>
+                <strong>{selectedBooking.phone}</strong>
+              </div>
+
+              <div>
+                <span>Event Date</span>
+                <strong>
+                  {new Date(
+                    `${selectedBooking.event_date}T00:00:00`
+                  ).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </strong>
+              </div>
+
+              <div>
+                <span>Location</span>
+                <strong>{selectedBooking.location}</strong>
+              </div>
+
+              <div>
+                <span>Team Size</span>
+                <strong>{selectedBooking.team_size}</strong>
+              </div>
+
+              <div>
+                <span>Budget</span>
+                <strong>
+                  {formatBudget(selectedBooking.budget)}
+                </strong>
+              </div>
+
+            </div>
+
+            <div className="booking-modal-message">
+              <span>Client Message</span>
+              <p>{selectedBooking.message}</p>
+            </div>
+
+            <button
+              type="button"
+              className="booking-modal-done"
+              onClick={() => setSelectedBooking(null)}
+            >
+              Close
+            </button>
+
+          </div>
+        </div>
+      )}
+
     </div>
   )
+
 }
 
 export default AdminDashboard

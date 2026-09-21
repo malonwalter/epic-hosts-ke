@@ -70,6 +70,7 @@ def create_booking():
     db.session.add(booking)
     db.session.commit()
 
+
     return jsonify({
         "message": "Booking request submitted successfully",
         "booking": booking.to_dict()

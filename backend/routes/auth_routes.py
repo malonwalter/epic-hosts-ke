@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, request, jsonify, session
 
 
@@ -8,8 +10,8 @@ auth_bp = Blueprint(
 )
 
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "epic123"
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "epic123")
 
 
 @auth_bp.route("/login", methods=["POST"])
