@@ -30,7 +30,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://localhost:5001/api/bookings/',
+        'https://epic-hosts-ke-api.vercel.app/api/bookings/',
         {
           method: 'POST',
           headers: {

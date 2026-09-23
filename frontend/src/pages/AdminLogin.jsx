@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './AdminLogin.css'
 
-const API_URL = 'http://localhost:5001/api/admin'
+const API_URL = 'https://epic-hosts-ke-api.vercel.app/api/admin'
 
 function AdminLogin() {
   const [username, setUsername] = useState('')

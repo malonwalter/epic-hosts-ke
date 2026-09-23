@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import './AdminDashboard.css'
 
-const API_URL = 'http://localhost:5001/api/bookings/'
-const AUTH_URL = 'http://localhost:5001/api/admin'
+const API_URL = 'https://epic-hosts-ke-api.vercel.app/api/bookings/'
+const AUTH_URL = 'https://epic-hosts-ke-api.vercel.app/api/admin'
 
 const formatEventType = (value) => {
   const labels = {
