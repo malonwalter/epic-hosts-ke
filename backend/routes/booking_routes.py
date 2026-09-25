@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from models import db, Booking
+from backend.models import db, Booking
 
 
 booking_bp = Blueprint(
